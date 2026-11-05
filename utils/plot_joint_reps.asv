@@ -1,0 +1,22 @@
+function [] = plot_joint_reps(joint_cell)
+%PLOT_JOINT_REPS Plots the position/ error etc. of each joint over multiple
+%iterations
+
+num_reps=width(joint_cell);
+
+for type=1:height(joint_cell)
+    figure;
+    for rep=1:num_reps
+        data=joint_cell{type,rep};
+        N=height(data);
+        timeSeries=(0:N-1)*0.01;
+        for i=1:4
+            subplot(2,2,i)
+            plot(timeSeries, data(:,i)); hold on
+            xlabel('Time (s)');
+            ylabel('Joint '+i);
+        end
+    
+    end
+
+end

@@ -1,0 +1,12 @@
+function [outputArg1,outputArg2] = detect_num_reps(subtask_arr)
+%DETECT_NUM_REPS Returns the number of repetitions of a movement carried
+%out based on the time-series subtask array
+
+Y=[true; diff(subtask_arr)~=0];
+subtask_idx=subtask(Y);
+
+ILC_subtasks=subtask_idx(is_ILC_subtask(subtask_idx));
+
+
+
+end

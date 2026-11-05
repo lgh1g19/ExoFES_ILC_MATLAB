@@ -1,0 +1,261 @@
+clear all
+close all
+%folder="longer_astro_betterRef/";
+% name1="astro_coupled_new_sgn_flipped.mat";
+% name2="astro_decoupled_sgn_flipped.mat";
+
+folder="planet_experiments/";
+name1="planet_experiment_2_coupled_allMusc.mat";
+name2="planet_experiment_2_decoupled_allMusc.mat";
+calib_name="C_cal_data_planet_experiment_2.mat";
+
+load("Game_data/"+folder+name1, 'err_sum_cell_ILC', 'ILC_subtask_order', 'G_cell_ILC','G_APD_cell_ILC', 'C');
+
+
+err_sum_coupling=err_sum_cell_ILC;
+G_coupling=G_cell_ILC;
+G_APD_coupling=G_APD_cell_ILC;
+
+load("Game_data/"+folder+name2, 'err_sum_cell_ILC', 'G_cell_ILC','G_APD_cell_ILC');
+err_sum_decoupled=err_sum_cell_ILC;
+G_decoupled=G_cell_ILC;
+G_APD_decoupled=G_APD_cell_ILC;
+
+err_cell_full={err_sum_coupling, err_sum_decoupled};
+G_cell_full={G_coupling, G_decoupled};
+G_APD_cell_full={G_APD_coupling, G_APD_decoupled};
+
+tasks=[1,3,5];
+task_names=["START TO T1", "START TO T2", "START TO T3"];
+
+%% Plot error convergence
+conv_e_norm=zeros(length(tasks),length(e_cell_full)); %Save the converged error over the final 3 iterations for each movement
+
+figure;
+for e=1:length(e_cell_full)
+for t=1:length(tasks)
+    err=err_cell_full{e}(tasks(t),:);
+    num_reps=width(err);
+    err_full=zeros(num_reps,4);
+    e_norm=zeros(num_reps,1);
+    for r=1:num_reps
+        err_full(r,:)=err{r}(end,:);
+        e_norm(r)=norm(err{r}(end,1:2));
+    end
+    conv_e_norm(t,e)=mean(e_norm(end-2:end));
+
+    %Plot error convergence
+    subplot(3,3,3*(t-1)+1);
+    plot(abs(err_full(:,1)), '-o'); hold on;
+    xlabel('Iteration');
+    ylabel('|e_1|');
+    title(task_names(t));
+
+
+    subplot(3,3,3*(t-1)+2);
+    plot(abs(err_full(:,2)), '-o'); hold on;
+    xlabel('Iteration');
+    ylabel('|e_2|');
+    title(task_names(t));
+
+    subplot(3,3,3*t);
+    plot(e_norm, '-o');
+    xlabel('Iteration');
+    ylabel('||e_1^2+e_2^2||'); hold on;
+    title(task_names(t));
+
+end
+
+end
+subplot(3,3,1)
+legend('coupled', 'decoupled');
+
+for t=1:9
+    subplot(3,3,t)
+    yl=ylim;
+    ylim([0,yl(2)]);
+end
+
+%% Plot ILC input
+conv_G_norm=zeros(length(tasks),length(e_cell_full));
+
+figure;
+for e=1:length(e_cell_full)
+for t=1:length(tasks)
+    G=G_cell_full{e}(tasks(t),:);
+    num_reps=width(G);
+    G_full=zeros(num_reps,5);
+    G_norm=zeros(num_reps,1);
+    for r=1:num_reps
+        G_full(r,:)=G{r}(end,:);
+        G_norm(r)=norm(G{r}(end,1:3));
+    end
+
+    conv_G_norm(t,e)=mean(G_norm(end-2:end));
+
+    %Plot error convergence
+    subplot(3,4,4*(t-1)+1);
+        plot(G_full(:,1), '-o'); hold on;
+        ylabel('|G_{AD}|');
+    xlabel('Iteration');
+    title(task_names(t));
+    ylim([0,1]);
+
+
+    subplot(3,4,4*(t-1)+2);
+    plot(G_full(:,2), '-o'); hold on;
+    xlabel('Iteration');
+    ylabel('|G_{MD}|');
+    title(task_names(t));
+    ylim([0,1]);
+
+    subplot(3,4,4*(t-1)+3);
+    plot(G_full(:,3), '-o'); hold on;
+        ylabel('|G_{PD}|');
+        xlabel('Iteration');
+    title(task_names(t));
+    ylim([0,1]);
+
+    subplot(3,4,4*t);
+    plot(G_norm, '-o');
+    xlabel('Iteration');
+    ylabel('||G_{AD/PD}^2+G_{MD}^2||'); hold on;
+    title(task_names(t));
+
+end
+
+end
+subplot(3,4,1)
+legend('coupled', 'decoupled');
+
+%% Plot actual error
+
+figure;
+for e=1:length(e_cell_full)
+for t=1:length(tasks)
+    err=err_cell_full{e}(tasks(t),:);
+    num_reps=width(err);
+    err_full=zeros(num_reps,4);
+    for r=1:num_reps
+        err_full(r,:)=err{r}(end,:);
+    end
+
+    %Plot error convergence
+    subplot(3,2,2*(t-1)+1);
+    plot(err_full(:,1), '-o'); hold on;
+    xlabel('Iteration');
+    ylabel('e_1');
+    title(task_names(t));
+
+
+    subplot(3,2,2*t);
+    plot(err_full(:,2), '-o'); hold on;
+    xlabel('Iteration');
+    ylabel('e_2');
+    title(task_names(t));
+end
+
+end
+subplot(3,2,1)
+legend('coupled', 'decoupled');
+
+%% Plot G_APD
+figure;
+for e=1:2
+for t=1:3
+    G_APD=G_APD_cell_full{e}(tasks(t),:);
+    num_reps=width(G);
+    G_APD_full=zeros(num_reps,5);
+    for r=1:num_reps
+        G_APD_full(r,:)=G_APD{r}(end,:);
+    end
+
+    %Plot error convergence
+    subplot(3,1,t);
+        plot(abs(G_APD_full(:,1)), '-o'); hold on;
+        ylabel('G_{APD}');
+    xlabel('Iteration');
+    title(task_names(t));
+    ylim([0,1]);
+
+end
+
+end
+subplot(3,1,1)
+legend('coupled', 'decoupled');
+
+%% Plot average results over the last 3 iterations
+movements=["T1", "T2", "T3"];
+
+%%% Error norm
+figure;
+bar(conv_e_norm);
+ylabel("Converged error norm (degrees)");
+xlabel("Movement");
+xticklabels(movements);
+legend('coupled','decoupled');
+
+%%% Input effort
+figure;
+bar(conv_G_norm);
+ylabel("Converged ILC input norm");
+xlabel("Movement");
+xticklabels(movements);
+legend('coupled','decoupled');
+
+%% Plot calibration data
+load("Calib_data\"+calib_name, "q_AD_data", "q_MD_data", "q_PD_data");
+
+figure;
+subplot(3,1,1)
+scatter(q_AD_data.theta1_arr, q_AD_data.theta2_arr,'x'); hold on
+offset=plot_gradient(q_AD_data.theta1_arr, q_AD_data.theta2_arr,C(1));
+add_stim_direction(q_AD_data.theta1_arr, offset, C(1));
+legend('data','fitted C_1', 'Increased stimulation');
+xlabel('\theta_1'); ylabel('\theta_2');
+title("Anterior deltoid stimulation");
+
+subplot(3,1,2)
+scatter(q_MD_data.theta2_arr, q_MD_data.theta1_arr,'x'); hold on
+offset=plot_gradient(q_MD_data.theta2_arr, q_MD_data.theta1_arr,C(2));
+add_stim_direction(q_MD_data.theta2_arr, offset, C(2));
+legend('data','fitted C_2/C_3');
+xlabel('\theta_2'); ylabel('\theta_1');
+title("Medial deltoid stimulation");
+
+subplot(3,1,3)
+scatter(q_PD_data.theta1_arr,q_PD_data.theta2_arr,'x'); hold on
+offset=plot_gradient(q_PD_data.theta1_arr,q_PD_data.theta2_arr,C(4));
+add_stim_direction(q_PD_data.theta1_arr, offset, C(4));
+legend('data','fitted C_3');
+xlabel('\theta_1'); ylabel('\theta_2');
+title("Posterior deltoid stimulation");
+%% 
+function [offset]=plot_gradient(x_points, y_points, grad)
+x=[min(x_points)-1, max(x_points)+1];
+
+offset=mean(y_points-x_points*grad);
+y=x*grad+offset;
+
+plot(x,y);
+end
+
+function []=add_stim_direction(x,c,m)
+min_x=min(x)+2;
+max_x=max(x)-2;
+if x(end) > x(1)
+    dx = max_x - min_x;
+    x_start = min_x;
+else
+    dx = min_x - max_x;
+    x_start = max_x;
+end
+
+dy = m*dx;
+y_start = m*x_start + c;
+
+% Add arrow
+quiver(x_start, y_start, dx, dy, 0, ...
+       'Color', 'k', 'LineStyle','--', ...
+       'MaxHeadSize', 0.3);
+end

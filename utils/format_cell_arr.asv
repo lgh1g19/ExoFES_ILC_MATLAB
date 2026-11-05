@@ -1,0 +1,46 @@
+function [cell_arr_formatted] = format_cell_arr(cell_arr, ILC_subtasks)
+%FORMAT_CELL_ARR Formats a 1D cell array based on the values in the ILC
+%subtask array
+% Each row corresponds to data from various repetitions of a particular
+% subtask
+arguments
+    cell_arr (1,:) cell
+    ILC_subtasks (1,:) int
+end
+
+if(length(ILC_subtasks)~=length(cell_arr))
+    warning("ILC subtask length must match length of cell array");
+    cell_arr_formatted=cell(1);
+    return
+end
+
+unique_tasks=unique(ILC_subtasks);
+num_tasks=length(unique_tasks);
+num_reps=length(ILC_subtasks)/num_tasks;
+
+if isinteger(num_reps)
+
+    cell_arr_formatted=cell(num_tasks,num_reps);
+    
+    for ptr=1:length(ILC_subtasks)
+        subtask=ILC_subtasks(ptr);
+        cell_arr_formatted{unique_tasks==subtask,}=cell_arr{ptr}
+    end
+
+else
+    warning("Non_integer number of repetitions");
+    cell_arr_formatted=cell(1);
+end
+
+end
+
+function [rep_num]=get_rep_num(array, idx)
+    %Finds the repetition number of the value at a particular location in
+    %an array
+    value=array(idx);
+    if(idx==1)
+        rep_num=1;
+    else
+        rep_num=sum(array(1:idx-1)==value)
+
+end

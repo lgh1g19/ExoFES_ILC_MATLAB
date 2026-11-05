@@ -1,0 +1,51 @@
+function [] = plot_G_update(C,err_cell_ILC, ILC_subtask_order,alpha)
+%PLOT_ERROR_CONV Plots the value of G over multiple iterations
+arguments
+    C 
+    err_cell_ILC
+    ILC_subtask_order
+    alpha = 0.02; 
+end
+
+map=exercise_map;
+
+num_reps=width(err_cell_ILC);
+
+
+for type=1:height(err_cell_ILC)
+    G_update_arr=zeros(num_reps,5);
+    for r=1:num_reps
+        err=err_cell_ILC{type,r}(end,:);
+        musc_stim=map{2}{ILC_subtask_order(type)+1};
+        G_update_arr(r,:)=compute_G_update(err,musc_stim,C, alpha);
+    end
+    figure;
+        for i=1:5
+            subplot(2,3,i)
+            plot(1:num_reps, G_update_arr(:,i)); hold on
+            xlabel('Iterations');
+            ylabel("G_"+i);
+        end
+end
+end
+
+
+function delta_G=compute_G_update(err,musc_stim, C, alpha)
+    e1=err(1); e2=err(2); e4=err(4);
+    delta_G=zeros(1,5);
+
+    if(musc_stim(2) && ~musc_stim(1) && ~musc_stim(3)) % Just medial deltoid being activated
+        delta_G(2)=-alpha*e2;
+    end
+
+    if(musc_stim(2) && musc_stim(1))
+        delta_G(1)=e1*C(1)*e2;
+        delta_G(2)=-C(2)*e1+e2;
+    end
+
+    if(musc_stim(2) && musc_stim(3))
+        delta_G(3)=-(e1*C(4)+e2;
+        delta_G(2)=-C(3)*e1+e2;
+    end
+
+end
